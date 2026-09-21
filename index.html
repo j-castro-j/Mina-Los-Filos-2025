@@ -27,16 +27,10 @@
     .compass-card:hover { border-color: #58a6ff; transform: scale(1.04); }
     .compass-svg { width: 75px; height: 75px; transform-origin: 50% 50%; will-change: transform; }
 
-    /* Escala Gráfica Inferior Derecha */
-    .scale-card { position: absolute; bottom: 20px; right: 16px; z-index: 10; background: rgba(18, 21, 25, 0.90); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.12); color: #f0f3f6; font-size: 13px; font-weight: 600; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-    .scale-line { height: 6px; border: 2px solid #58a6ff; border-top: none; margin: 6px auto 2px auto; width: 200px; }
-
     @media (max-width: 768px) {
       .top-bar { top: 10px; left: 10px; right: 10px; padding: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
       .compass-card { width: 80px; height: 80px; top: auto; bottom: 85px; right: 10px; }
       .compass-svg { width: 55px; height: 55px; }
-      .scale-card { bottom: 10px; right: 10px; left: 10px; }
-      .scale-line { width: 100%; max-width: 200px; }
     }
   </style>
 </head>
@@ -56,11 +50,6 @@
       <polygon points="18,29 22,18 18,20.5 14,18" fill="#8b949e" />
       <circle cx="18" cy="18" r="2.5" fill="#f0f3f6" />
     </svg>
-  </div>
-
-  <div class="scale-card">
-    <div id="scaleText">-- m</div>
-    <div id="scaleBar" class="scale-line"></div>
   </div>
 
   <div id="cesiumContainer"></div>
@@ -98,7 +87,7 @@
     });
 
     // =========================================================================
-    // 4. CÁMARA, BRÚJULA Y ESCALA
+    // 4. CÁMARA Y BRÚJULA
     // =========================================================================
     function topView() { if (currentTileset) viewer.zoomTo(currentTileset, new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-89.9), 0)); }
     function perspectiveView() { if (currentTileset) viewer.zoomTo(currentTileset, new Cesium.HeadingPitchRange(Cesium.Math.toRadians(45), Cesium.Math.toRadians(-35), 0)); }
@@ -115,23 +104,8 @@
       }
     });
 
-    // Actualizar Escala Gráfica
-    function updateScaleBar() {
-      const width = 200;
-      const center = new Cesium.Cartesian2(viewer.canvas.clientWidth / 2, viewer.canvas.clientHeight / 2);
-      const right = new Cesium.Cartesian2(center.x + width, center.y);
-      const p1 = viewer.scene.pickPosition(center);
-      const p2 = viewer.scene.pickPosition(right);
-
-      if (Cesium.defined(p1) && Cesium.defined(p2)) {
-        const dist = Cesium.Cartesian3.distance(p1, p2);
-        document.getElementById('scaleText').innerText = dist > 1000 ? (dist / 1000).toFixed(2) + ' km' : dist.toFixed(1) + ' m';
-      }
-    }
-    viewer.camera.changed.addEventListener(updateScaleBar);
-
     // =========================================================================
-    // 5. CAPTURA DE PANTALLA EJECUTIVA (INCLUYE UI ESTAMPADA)
+    // 5. CAPTURA DE PANTALLA EJECUTIVA (UI ESTAMPADA)
     // =========================================================================
     function takeExecutiveScreenshot() {
       viewer.render(); // Forzar renderizado
@@ -180,25 +154,7 @@
       ctx.fillText('N', 0, -42);
       ctx.restore();
 
-      // 4. Estampar la Escala Gráfica en la esquina inferior derecha
-      const scaleTxt = document.getElementById('scaleText').innerText;
-      ctx.save();
-      ctx.translate(cw - 248, ch - 65); // Margen derecho e inferior
-      ctx.fillStyle = 'rgba(18, 21, 25, 0.85)';
-      ctx.beginPath(); ctx.roundRect(0, 0, 232, 45, 6); ctx.fill();
-      
-      // Texto de escala
-      ctx.fillStyle = '#f0f3f6'; ctx.font = 'bold 13px sans-serif'; ctx.textAlign = 'center';
-      ctx.fillText(scaleTxt, 116, 20);
-      
-      // Línea de regla métrica
-      ctx.fillStyle = '#58a6ff';
-      ctx.fillRect(16, 28, 200, 4);  // Barra central
-      ctx.fillRect(16, 24, 2, 8);    // Tope izquierdo
-      ctx.fillRect(214, 24, 2, 8);   // Tope derecho
-      ctx.restore();
-
-      // 5. Descargar la imagen procesada
+      // 4. Descargar la imagen procesada
       const link = document.createElement('a');
       link.download = `Mina_Los_Filos_Marzo_2025.png`;
       link.href = canvas2d.toDataURL('image/png');
